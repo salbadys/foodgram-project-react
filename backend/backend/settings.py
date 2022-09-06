@@ -1,10 +1,13 @@
 import os
+from decouple import config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'ddnfft2#=rt_1nc0tfze@gdbnx1-)ct^4lg%8+jlb*w0&)jw#w'
+# SECRET_KEY = 'ddnfft2#=rt_1nc0tfze@gdbnx1-)ct^4lg%8+jlb*w0&)jw#w'
+# SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = config('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -54,37 +57,24 @@ TEMPLATES = [
     },
 ]
 
-# можно закоментить
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-#добавил для картинок
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
     'default': {
-        # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'foodgram',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': '0127923a',
+        'ENGINE': os.getenv('DB_ENGINE',
+                            default='django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', default='postgres'),
+        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='0127923a'),
         # 'HOST': 'localhost',
-        'HOST': 'db',
-        'PORT': '5432',
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432'),
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

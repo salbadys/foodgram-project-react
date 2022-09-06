@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -92,6 +92,11 @@ class DownloadListView(APIView):
         for record in shopping_cart:
             recipe = record.recipes
             ingredients = IngredientForRecipe.objects.filter(recipe=recipe)
+            if ingredients is None:
+                return Response(
+                    'Ингридиентов нет! Добавь хоть один',
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             for ingredient in ingredients:
                 amount = ingredient.amount
                 name = ingredient.ingredients.name
@@ -103,11 +108,11 @@ class DownloadListView(APIView):
                     }
                 else:
                     buy_list[name]['amount'] = (buy_list[name]['amount']
-                                                   + amount)
+                                                + amount)
         shop_list.append('Список ваших покупок: ')
         for item in buy_list:
             shop_list.append(f'{item} - {buy_list[item]["amount"]} '
-                                f'{buy_list[item]["measurement_unit"]};')
+                             f'{buy_list[item]["measurement_unit"]};')
         shop_list.append(' ')
         shop_list.append('- Ваш сервис рецептов Foodgram')
         response = HttpResponse(shop_list, 'Content-Type: text/plain')
@@ -126,11 +131,7 @@ class AddCartViewSet(APIView):
         }
         serializer = ShoppingSerializer(data=data,
                                         context={'request': request})
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -152,11 +153,7 @@ class FavoriteViewSet(APIView):
         }
         serializer = FavoriteSerializer(data=data,
                                         context={'request': request})
-        if not serializer.is_valid():
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -193,7 +190,54 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipes.objects.all()
 
     def get_serializer_class(self):
-        print(self.request.method)
         if self.request.method == 'GET':
             return RecipesSerializer
         return RecipeSerializerPost
+
+    # def create_ingredients(self, ingredients, recipes):
+    #     for ingredient in ingredients:
+    #         IngredientForRecipe.objects.create(
+    #             recipe=recipes, ingredients=ingredient['id'],
+    #             amount=ingredient['amount']
+    #         )
+
+    def create_tags(self, tags, recipes):
+        for tag in tags:
+            recipes.tags.add(tag)
+
+    def create(self, request, *args, **kwargs):
+        author = self.request.user
+        serializer = RecipeSerializerPost(data=request.data)
+        if serializer.is_valid():
+            tags = serializer.validated_data.pop('tags')
+            ingredients = serializer.validated_data.pop('ingredients')
+            value = len(ingredients)
+            recipe = Recipes.objects.create(author=author,
+                                            **serializer.validated_data)
+            self.create_tags(tags, recipe)
+            objs = [IngredientForRecipe(
+                recipe=recipe, ingredients=ingredients[i]['id'],
+                amount=ingredients[i]['amount']) for i in range(
+                value)]
+            IngredientForRecipe.objects.bulk_create(objs)
+            serializer = RecipeSerializerPost(instance=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        instance = get_object_or_404(Recipes, pk=pk)
+        instance.tags.clear()
+        IngredientForRecipe.objects.filter(recipe=instance).delete()
+        serializer = RecipeSerializerPost(instance, data=request.data,
+                                          partial=True)
+        serializer.is_valid(raise_exception=True)
+        tags = serializer.validated_data.pop('tags')
+        ingredients = serializer.validated_data.pop('ingredients')
+        value = len(ingredients)
+        self.create_tags(tags, instance)
+        objs = [IngredientForRecipe(
+            recipe=instance, ingredients=ingredients[i]['id'],
+            amount=ingredients[i]['amount']) for i in range(
+            value)]
+        IngredientForRecipe.objects.bulk_create(objs)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
