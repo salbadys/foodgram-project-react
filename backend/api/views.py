@@ -213,7 +213,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
                 amount=ingredients[i]['amount']) for i in range(
                 value)]
             IngredientForRecipe.objects.bulk_create(objs)
-            serializer = RecipeSerializerPost(instance=recipe)
+            serializer = RecipeSerializerPost(instance=recipe,
+                                              context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None, *args, **kwargs):
@@ -233,4 +234,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
             value)]
         IngredientForRecipe.objects.bulk_create(objs)
         serializer.save()
+        serializer = RecipeSerializerPost(instance=instance,
+                                          context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)

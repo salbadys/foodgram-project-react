@@ -17,7 +17,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(UserSerializer):
     """Просмотр подписки"""
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
