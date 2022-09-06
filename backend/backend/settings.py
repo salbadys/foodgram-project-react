@@ -3,8 +3,6 @@ from decouple import config
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# SECRET_KEY = 'ddnfft2#=rt_1nc0tfze@gdbnx1-)ct^4lg%8+jlb*w0&)jw#w'
-# SECRET_KEY = os.getenv('SECRET_KEY')
 SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = os.getenv('DEBUG')

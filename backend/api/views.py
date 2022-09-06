@@ -1,4 +1,4 @@
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -15,13 +15,13 @@ from .models import Recipes, Tags, Ingredient, FavoriteUser, ShopCart, \
 from users.models import User, Follow
 from .serializers import RecipesSerializer, TagsSerializer, \
     IngredientSerializer, FavoriteSerializer, \
-    FollowUserSerializer, ShoppingSerializer, RegistrationSerializer, \
-    RecipeSerializerPost
+    FollowUserSerializer, ShoppingSerializer, \
+    RecipeSerializerPost, CustomUserSerializer
 
 
 class CreateUserView(UserViewSet):
     """Просмотр пользователей"""
-    serializer_class = RegistrationSerializer
+    serializer_class = CustomUserSerializer
 
     def get_queryset(self):
         return User.objects.all()
@@ -193,13 +193,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return RecipesSerializer
         return RecipeSerializerPost
-
-    # def create_ingredients(self, ingredients, recipes):
-    #     for ingredient in ingredients:
-    #         IngredientForRecipe.objects.create(
-    #             recipe=recipes, ingredients=ingredient['id'],
-    #             amount=ingredient['amount']
-    #         )
 
     def create_tags(self, tags, recipes):
         for tag in tags:

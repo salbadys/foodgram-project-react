@@ -15,7 +15,28 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
 
-class FollowUserSerializer(UserSerializer):
+class CustomUserSerializer(UserSerializer):
+    """Просмотр подписки"""
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed')
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, author=obj.id).exists()
+
+
+class FollowUserSerializer(CustomUserSerializer):
     """Подписка на пользователя"""
 
     recipes = serializers.SerializerMethodField(read_only=True)
@@ -140,7 +161,7 @@ class RecipesSerializer(serializers.ModelSerializer):
     """Рецепты"""
     ingredients = serializers.SerializerMethodField(read_only=True)
     tags = TagsSerializer(many=True)
-    author = RegistrationSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
@@ -186,27 +207,6 @@ class IngredientAmountRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientForRecipe
         fields = ('id', 'amount')
-
-
-class CustomUserSerializer(UserSerializer):
-    """Просмотр подписки"""
-    is_subscribed = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed')
-
-    def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=user, author=obj.id).exists()
 
 
 class RecipeSerializerPost(serializers.ModelSerializer):
