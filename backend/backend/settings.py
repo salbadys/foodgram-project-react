@@ -7,7 +7,9 @@ SECRET_KEY = config('SECRET_KEY')
 
 DEBUG = os.getenv('DEBUG')
 
+# 2 этап
 ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['51.250.83.28', 'backend', 'localhost', '127.0.0.1', 'db']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -73,7 +75,6 @@ DATABASES = {
     }
 }
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -124,5 +125,3 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-
-

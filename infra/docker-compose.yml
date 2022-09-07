@@ -9,7 +9,8 @@ services:
     ports:
       - "5432:5432"
   web:
-    build: ../backend
+#    build: ../backend
+    image: salbad/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -19,12 +20,9 @@ services:
     env_file:
       - ./.env
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: salbad/foodgram_frontend:latest
 #    volumes:
 #      - ../frontend/:/app/result_build/
-#    image: salbad/frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 #    depends_on:
