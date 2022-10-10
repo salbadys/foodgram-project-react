@@ -2,7 +2,7 @@
 http://foodgramsalbad.ddns.net/
 http://51.250.83.28
 admin@mail.ru
-0127923
+секретный пароль:_)
 ```
 
 ## Описание проекта Foodgram
